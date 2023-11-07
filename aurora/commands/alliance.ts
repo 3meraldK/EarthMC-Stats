@@ -698,9 +698,9 @@ export default {
 }
 
 async function sendAllianceList(client, message, m, args, type) {
-    database.Aurora.getAlliances().then(async allianceArr => { 
-        return type.toLowerCase() == 'all' 
-            ? allianceArr : allianceArr.filter(a => !!a.type && (a.type.toLowerCase() == type.toLowerCase()))
+    database.Aurora.getAlliances().then(async allianceArr => {
+        const typeLower = type.toLowerCase()
+        return typeLower == 'all' ? allianceArr : allianceArr.filter(a => a.type && a.type.toLowerCase() == typeLower)
     }).then(async alliances => {
         database.Aurora.getNations().then(async nations => {
             const alliancesLen = alliances.length
@@ -831,7 +831,7 @@ async function sendAllianceList(client, message, m, args, type) {
                 .setFooter({text: `Page ${i+1}/${len}`, iconURL: client.user.avatarURL()})
             }
 
-            return await m.edit({embeds: [botembed[0]]}).then(msg => fn.paginator(message.author.id, msg, botembed, 0))
+            return await m.edit({ embeds: [botembed[0]] }).then(msg => fn.paginator(message.author.id, msg, botembed, 0))
             //#endregion
         })
     })
@@ -844,24 +844,20 @@ async function sendSingleAlliance(
     args: string[]
 ) {
     const foundAlliance = await database.Aurora.getAlliance(args[0])
-    if (!foundAlliance) {
-        return m.edit({embeds: [
-            new EmbedBuilder()
-            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-            .setTitle("Error fetching alliance")
-            .setDescription("That alliance does not exist! Please try again.")
-            .setColor(Colors.Red)
-            .setTimestamp()
-        ]}).then(m => setTimeout(() => m.delete(), 10000)).catch(() => {}) 
-    }
+    if (!foundAlliance) return m.edit({embeds: [new EmbedBuilder()
+        .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+        .setTitle("Error fetching alliance")
+        .setDescription("That alliance does not exist! Please try again.")
+        .setColor(Colors.Red)
+        .setTimestamp()
+    ]}).then(m => setTimeout(() => m.delete(), 10000)).catch(() => {}) 
 
     const leaderNames = foundAlliance.leaderName.split(', ')
     const players = await database.getPlayers().then(arr => arr.filter(p => 
         leaderNames.find(l => l.toLowerCase() == p.name.toLowerCase())
     ))
 
-    if (!players) return m.edit({embeds: [
-        new EmbedBuilder()
+    if (!players) return m.edit({embeds: [new EmbedBuilder()
         .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
         .setTitle("Database error occurred")
         .setDescription("Failed to fetch players needed for this command to work.")
@@ -869,12 +865,13 @@ async function sendSingleAlliance(
         .setTimestamp()
     ]}).then(m => setTimeout(() => m.delete(), 10000)).catch(() => {}) 
 
-    const typeString = !foundAlliance.type ? "Normal" : foundAlliance.type.toLowerCase(),
-          allianceType = typeString == 'sub' ? "Sub-Meganation" : 
-                         typeString == 'mega' ? "Meganation" : "Normal"
+    const typeString = !foundAlliance.type ? "Normal" : foundAlliance.type.toLowerCase()
+    const allianceType = 
+        typeString == 'sub' ? "Sub-Meganation" : 
+        typeString == 'mega' ? "Meganation" : "Normal"
     
-    const playersLen = players.length,
-          leaders = []
+    const playersLen = players.length
+    const leaders = []
 
     for (let i = 0; i < playersLen; i++) {
         const leader = players[i]

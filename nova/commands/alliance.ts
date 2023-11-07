@@ -121,44 +121,42 @@ export default {
                     }
                     
                     database.Nova.getAlliances().then(async alliances => {
-                        const foundAlliance = alliances.find(alliance => alliance.allianceName.toLowerCase() == allianceName.toLowerCase())
-                    
-                        if (foundAlliance) return m.edit({embeds: [
-                            new Discord.EmbedBuilder()
-                                .setTitle("Error creating alliance")
-                                .setDescription("The alliance you're trying to create already exists! Please use /alliance add.")
-                                .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-                                .setColor(Discord.Colors.Red)
-                                .setTimestamp()
+                        const foundAlliance = alliances.some(a => a.allianceName.toLowerCase() == allianceName.toLowerCase())
+                        if (foundAlliance) return m.edit({embeds: [new Discord.EmbedBuilder()
+                            .setTitle("Error creating alliance")
+                            .setDescription("The alliance you're trying to create already exists! Please use /alliance add.")
+                            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+                            .setColor(Discord.Colors.Red)
+                            .setTimestamp()
                         ]}).then(m => setTimeout(() => m.delete(), 10000)).catch(() => {}) 
-                        else {
-                            alliances.push({
-                                allianceName: allianceName,
-                                leaderName: leaderName,
-                                discordInvite: "No discord invite has been set for this alliance",
-                                imageURL: null,
-                                nations: [],
-                                meganation: false
-                            })
-
-                            await database.Nova.setAlliances(alliances)
                         
-                            if (leaderName == "No leader set.") return m.edit({embeds: [
-                                new Discord.EmbedBuilder()
-                                    .setTitle("Alliance Created")
-                                    .setDescription("The alliance `" + allianceName + "` has been created.\n\nNo leader has been set.")
-                                    .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-                                    .setColor(Discord.Colors.DarkBlue)
-                                    .setTimestamp()
-                            ]})
-                            else return m.edit({embeds: [new Discord.EmbedBuilder()
-                                .setTitle("Alliance Created")
-                                .setDescription("The alliance `" + allianceName + "` has been created.\n\nLeader(s): `" + leaderName + "`")
-                                .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
-                                .setColor(Discord.Colors.DarkBlue)
-                                .setTimestamp()
-                            ]})
-                        }
+                        alliances.push({
+                            allianceName: allianceName,
+                            leaderName: leaderName,
+                            discordInvite: "No discord invite has been set for this alliance",
+                            imageURL: null,
+                            nations: [],
+                            meganation: false
+                        })
+
+                        await database.Nova.setAlliances(alliances)
+                    
+                        if (leaderName == "No leader set.") return m.edit({embeds: [
+                            new Discord.EmbedBuilder()
+                            .setTitle("Alliance Created")
+                            .setDescription("The alliance `" + allianceName + "` has been created.\n\nNo leader has been set.")
+                            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+                            .setColor(Discord.Colors.DarkBlue)
+                            .setTimestamp()
+                        ]})
+
+                        return m.edit({embeds: [new Discord.EmbedBuilder()
+                            .setTitle("Alliance Created")
+                            .setDescription("The alliance `" + allianceName + "` has been created.\n\nLeader(s): `" + leaderName + "`")
+                            .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+                            .setColor(Discord.Colors.DarkBlue)
+                            .setTimestamp()
+                        ]})
                     })
                 } else if (arg0 == "rename") {
                     database.Nova.getAlliances().then(async alliances => {
@@ -699,13 +697,12 @@ async function sendAllianceList(client, message, m, args, type) {
                     if (b.towns.length < a.towns.length) return -1
                 })
 
-                if (args[0] != null && args[0].toLowerCase() == "search") {
-                    foundAlliances = alliances.filter(a => a.allianceName.toLowerCase() == args[1].toLowerCase() || 
-                                                           a.allianceName.toLowerCase().includes(args[1].toLowerCase()))
+                const arg1 = args[1]?.toLowerCase()
+                if (args[0]?.toLowerCase() == "search") {
+                    foundAlliances = alliances.filter(a => a.allianceName.toLowerCase().includes(arg1))
                     searching = true
-                } else if (args[1].toLowerCase() == "search") { // /alliance list search
-                    foundAlliances = alliances.filter(a => a.allianceName.toLowerCase() == args[2].toLowerCase() || 
-                                                           a.allianceName.toLowerCase().includes(args[2].toLowerCase()))
+                } else if (arg1 == "search") { // /alliance list search
+                    foundAlliances = alliances.filter(a => a.allianceName.toLowerCase().includes(args[2].toLowerCase()))
                     searching = true
                 }
             }
@@ -714,8 +711,7 @@ async function sendAllianceList(client, message, m, args, type) {
             //#region Search or send all
             if (searching) {
                 if (foundAlliances.length == 0) {
-                    return m.edit({embeds: [
-                        new Discord.EmbedBuilder()
+                    return m.edit({embeds: [new Discord.EmbedBuilder()
                         .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
                         .setTitle("Searching unsuccessful")
                         .setDescription("Could not find any alliances matching that key.")
@@ -768,7 +764,8 @@ async function sendAllianceList(client, message, m, args, type) {
                     .setFooter({text: `Page ${i+1}/${len}`, iconURL: client.user.avatarURL()})
                 }
 
-                return await m.edit({embeds: [botembed[0]]}).then(msg => fn.paginator(message.author.id, msg, botembed, 0))
+                return await m.edit({ embeds: [botembed[0]] })
+                    .then(msg => fn.paginator(message.author.id, msg, botembed, 0))
             }
             //#endregion
         })
