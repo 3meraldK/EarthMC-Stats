@@ -73,13 +73,23 @@ export type MapDB = {
     setResidents(residents: any[]): Promise<void>
 }
 
-export type Alliance = {
+export type BaseAlliance = {
     fullName?: string
-    name: string
+    allianceName: string
     nations: any[]
     area: number
     type: "normal" | "sub" | "mega"
     leaders: string[]
     flag: string
     discordInvite: string
+}
+
+export type Alliance = BaseAlliance & {
+    towns: any[]
+    residents: any[]
+}
+
+export type AccumulatedAlliance = BaseAlliance & {
+    towns: number
+    residents: number
 }

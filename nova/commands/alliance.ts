@@ -850,14 +850,14 @@ async function sendSingleAlliance(client, message, m, args) {
     })
 }
 
-const name = alliance => alliance.fullName ?? alliance.allianceName,
-      argsHelper = (args, spliceAmt) => ({
-        original: args,
-        spliced: [],
-        format: function() { 
-            this.spliced = this.original.splice(spliceAmt).map(e => e.replace(/,/g, ''))
-            return this.spliced
-        },
-        asArray: function() { return this.spliced?.length < 1 ? this.format() : this.spliced },
-        asString: function(delimiter = ", ") { return this.asArray().join(delimiter) }
-    })
+const name = alliance => alliance.fullName ?? alliance.allianceName
+const argsHelper = (args, spliceAmt) => ({
+    original: args,
+    spliced: [],
+    format: function() { 
+        this.spliced = this.original.splice(spliceAmt).map(e => e.replace(/,/g, ''))
+        return this.spliced
+    },
+    asArray: function() { return this.spliced?.length < 1 ? this.format() : this.spliced },
+    asString: function(delimiter = ", ") { return this.asArray().join(delimiter) }
+})
