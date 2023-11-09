@@ -81,7 +81,12 @@ export type BaseAlliance = {
     type: "normal" | "sub" | "mega"
     leaders: string[]
     flag: string
+    imageURL: string
     discordInvite: string
+    colours: {
+        fill: string
+        outline: string
+    }
 }
 
 export type Alliance = BaseAlliance & {
