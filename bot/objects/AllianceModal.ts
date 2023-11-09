@@ -1,46 +1,43 @@
-import Discord from 'discord.js'
 import cache from 'memory-cache'
 
-const ParagraphStyle = Discord.TextInputStyle.Paragraph
+import { 
+    ActionRowBuilder, ChatInputCommandInteraction, 
+    CommandInteractionOptionResolver, 
+    ModalBuilder, ModalSubmitInteraction, 
+    TextInputBuilder, TextInputStyle
+} from 'discord.js'
+
+import { type Alliance } from '../types.js'
+
+const ParagraphStyle = TextInputStyle.Paragraph
 const optionals = ['flag', 'discord', 'fill', 'outline', 'full_name']
-const optLower = (opts: Discord.CommandInteractionOptionResolver, k: string) => 
+
+const optLower = (opts: CommandInteractionOptionResolver, k: string) => 
     opts.getString(k).toLowerCase()
 
-const fieldVal = (interaction: Discord.ModalSubmitInteraction, name: string) => 
+const fieldVal = (interaction: ModalSubmitInteraction, name: string) => 
     interaction.fields.getField(name).value
 
-type Alliance = {
-    map: string
-    name: string
-    fullName: string
-    nations: any[]
-    leaders: any[]
-    imageURL: string
-    discordInvite: string
-    type: string
-    colours: {
-        fill: string
-        outline: string
-    }
-}
-
-class AllianceModal extends Discord.ModalBuilder {
+class AllianceModal extends ModalBuilder {
     rows = []
     required = false
-    alliance: Alliance = null
+    alliance: Alliance & {
+        map?: string
+        name?: string
+    } = null
 
-    constructor(id, title, alliance = null) {
+    constructor(id: string, title: string, alliance: Alliance = null) {
         super({ customId: id, title, components: [] })
 
         this.alliance = alliance
         this.required = !alliance ? true : false
     }
 
-    createRow = (id, label, placeholder = null, style = Discord.TextInputStyle.Short) => {
+    createRow = (id: string, label: string, placeholder = null, style = TextInputStyle.Short) => {
         if (optionals.includes(id)) this.required = false
         else this.required = true
 
-        const comp = new Discord.TextInputBuilder()
+        const comp = new TextInputBuilder()
             .setCustomId(id)
             .setLabel(label)
             .setStyle(style)
@@ -51,10 +48,10 @@ class AllianceModal extends Discord.ModalBuilder {
             comp.setPlaceholder(str)
         }
 
-        return new Discord.ActionRowBuilder().addComponents(comp)
+        return new ActionRowBuilder().addComponents(comp)
     }
 
-    show = (interaction: Discord.ChatInputCommandInteraction) => {
+    show = (interaction: ChatInputCommandInteraction) => {
         console.log(`Showing creation wizard for ${this.alliance.name}`)
 
         const key = interaction.member.user.id
@@ -64,7 +61,7 @@ class AllianceModal extends Discord.ModalBuilder {
         return interaction.showModal(this)
     }
 
-    main = (options: Discord.CommandInteractionOptionResolver) => {
+    main = (options: CommandInteractionOptionResolver) => {
         this.rows = [
             this.createRow('nations', 'List of Nations', this.alliance?.nations, ParagraphStyle),
             this.createRow('leaders', 'Leader(s)', this.alliance?.leaders, ParagraphStyle),
@@ -79,25 +76,6 @@ class AllianceModal extends Discord.ModalBuilder {
         return this
     }
 
-    asObject = (interaction: Discord.ModalSubmitInteraction ) => { 
-        const obj: any = {
-            mapName: this.alliance.map,
-            allianceName: this.alliance.name,
-            nations: fieldVal(interaction, 'nations').replaceAll(' ', '').split(','),
-            leaders: fieldVal(interaction, 'leaders')
-        }
-
-        const fullName = fieldVal(interaction, 'full_name'),
-              discord = fieldVal(interaction, 'discord'),
-              flag = fieldVal(interaction, 'flag')
-
-        if (fullName) obj.fullName = fullName
-        if (discord) obj.discord = discord
-        if (flag) obj.imageURL = flag
-
-        return obj
-    }
-
     extra = () => {
         this.rows = [
             this.createRow('type', 'Type (Sub/Mega/Pact)', this.alliance?.type),
@@ -106,6 +84,25 @@ class AllianceModal extends Discord.ModalBuilder {
         ]
 
         return this
+    }
+
+    asObject = (interaction: ModalSubmitInteraction) => { 
+        const obj: any = {
+            mapName: this.alliance.map,
+            allianceName: this.alliance.name,
+            nations: fieldVal(interaction, 'nations').replaceAll(' ', '').split(','),
+            leaders: fieldVal(interaction, 'leaders')
+        }
+
+        const fullName = fieldVal(interaction, 'full_name')
+        const discord = fieldVal(interaction, 'discord')
+        const flag = fieldVal(interaction, 'flag')
+
+        if (fullName) obj.fullName = fullName
+        if (discord) obj.discord = discord
+        if (flag) obj.imageURL = flag
+
+        return obj
     }
 }
 
