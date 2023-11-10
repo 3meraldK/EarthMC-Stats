@@ -5,5 +5,5 @@
 /dist
 
 .env
-.env.dev
+.env.*
 .slugignore
