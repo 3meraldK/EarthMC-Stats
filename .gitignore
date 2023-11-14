@@ -14,4 +14,4 @@ ecosystem.*
 
 ## Extra
 .slugignore
-.vscode
+.vscode/
