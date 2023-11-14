@@ -9,6 +9,8 @@
 .env.*
 pm2.*
 ecosystem.*
+*key.pub
+*.key
 
 ## Extra
 .slugignore
